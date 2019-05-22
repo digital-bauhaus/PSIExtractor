@@ -3,12 +3,15 @@ import com.intellij.lang.FileASTNode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 public class ButtonAction extends AnAction {
     private void iterateOverFilesInProject(AnActionEvent event) {
@@ -24,9 +27,12 @@ public class ButtonAction extends AnAction {
     private void createVirtualFilefromPath(AnActionEvent event) {
         //TODO: change to corpus path
         String filePath = "/home/andre/Documents/parseFolderTest/TestClass.java";
+
+        File f = new File(filePath);
+
         PsiFileBuilder psiFileBuilder = new PsiFileBuilder(event.getProject());
         PsiFile file = psiFileBuilder.getPsiFile(filePath);
-        test(event, file);
+        addFileToProjectDirectory(event, file, f.getName());
     }
 
     private void iterateOverRealFiles(Project project) {
@@ -42,10 +48,13 @@ public class ButtonAction extends AnAction {
         });
     }
 
-    private void test(AnActionEvent e, PsiFile f) {
-        PsiDirectory directory = LangDataKeys.IDE_VIEW.getData(e.getDataContext()).getOrChooseDirectory();
-        // Writes file - but as foo.bar ... TODO
-        directory.add(f);
+    private void addFileToProjectDirectory(AnActionEvent e, PsiFile f, String filename) {
+        f.setName(filename);
+        ApplicationManager.getApplication().runWriteAction(() -> {
+            //TODO: check if file already exists
+            PsiDirectory directory = LangDataKeys.IDE_VIEW.getData(e.getDataContext()).getOrChooseDirectory();
+            directory.add(f);
+        });
     }
 
     @Override
