@@ -10,6 +10,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
+import serialization.Serializer;
 
 import java.io.File;
 
@@ -19,7 +20,7 @@ public class ButtonAction extends AnAction {
         // TODO: do we have to add real files to the project? can be enough to just use the PSIfile
         //       However, we will need a way to serialize them to let the python ML do its magic
         //       To sum up: we need serializer and deserializer for the tree
-        createVirtualFilefromPath(event);
+        //createVirtualFilefromPath(event);
         // iterate over all files in the given project
         iterateOverRealFiles(event.getProject());
     }
@@ -36,12 +37,14 @@ public class ButtonAction extends AnAction {
     }
 
     private void iterateOverRealFiles(Project project) {
+        Serializer serializer = new Serializer();
         ProjectFileIndex.SERVICE.getInstance(project).iterateContent(virtualFile -> {
             if(virtualFile.getFileType().getName().equals("JAVA")) {
                 PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
                 System.out.println(psiFile);
                 FileASTNode fileASTNode = psiFile.getNode();
                 ASTNode node = (ASTNode) fileASTNode;
+                serializer.serialize(psiFile);
                 // TODO: we need a way to serialize this fileASTNode
             }
             return true;
